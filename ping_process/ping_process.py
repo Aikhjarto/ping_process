@@ -173,12 +173,12 @@ def parse_args():
 
 if __name__ == "__main__":
 
+    args = parse_args()
+
     if sys.stdin.isatty():
         raise RuntimeError(
             "This script is supposed to read from " "a pipe and not from user input."
         )
-
-    args = parse_args()
 
     p = PingDProcessor(
         max_time_ms=args.max_time_ms,

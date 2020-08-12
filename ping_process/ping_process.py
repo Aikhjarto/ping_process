@@ -23,8 +23,8 @@ import argparse
 class PingDProcessor:
     """
     Class to check consecutive lines of the ouput of "ping -D x.x.x.x" for 
-    anomalies. Anomal lines are printed to stdout prefixed with a human 
-    readable timestamp.
+    anomalies. Anomal lines (too long roundtrip time or missing sqeuence 
+    number) are printed to stdout prefixed with a human readable timestamp.
 
     Parameters
     ----------
@@ -42,6 +42,11 @@ class PingDProcessor:
     heartbeat_pipe : object
         To not gobble out output, heartbeat can be redirected.
         `heartbeat_pipe` is used as 'file=' argument to print().
+
+    allowed_seq_diff : int
+        If icmp_seq differs more more than `allowed_seq_diff` from one line to
+        the next, the incident is logged. Default: 1, i.e. every missed ping
+        is logged.
     """
 
     def __init__(
@@ -50,6 +55,7 @@ class PingDProcessor:
         datetime_fmt_string=None,
         heartbeat_interval=0,
         heartbeat_pipe=None,
+        allowed_seq_diff=1
     ):
 
         self.max_time_ms = max_time_ms
@@ -66,6 +72,9 @@ class PingDProcessor:
         # last line for status output
         self.last_line = ""
         self.last_timestring = ""
+
+        self.last_seq = -1
+        self.allowed_seq_diff = allowed_seq_diff
 
     def process(self, line):
         """
@@ -101,6 +110,31 @@ class PingDProcessor:
             # strip square brackets from timestamp
             timestamp = float(a[0][1:-2])
 
+            # get sequence number
+            seq = int(a[5][9:])
+
+            # get roundtrip time
+            rt_time = float(a[-2][5:])  # strip "time=" from "time=xx.x"
+
+            # convert time when ping was sent in a human readable format
+            time_string = datetime.fromtimestamp(timestamp).strftime(
+                self.datetime_fmt_string
+            )
+            self.last_timestring = time_string
+
+            # log too long roundtrip time
+            if rt_time > self.max_time_ms:
+                print(f"{time_string} {self.last_line}")
+
+                # store time when stdout was written for next heartbeat
+                self.last_timestamp = timestamp
+
+            # check is sequence number increment is one
+            if self.last_seq != -1 and seq - self.allowed_seq_diff != self.last_seq:
+                # missed a ping
+                print(f"{time_string} Missed icmp_seq={self.last_seq}:{seq}")
+                self.last_timestamp = timestamp
+
             if (
                 self.last_timestamp
                 and self.heartbeat_interval > 0
@@ -113,21 +147,7 @@ class PingDProcessor:
                 )
                 self.last_timestamp = time.time()
 
-            # convert time when ping was sent in a human readable format
-            time_string = datetime.fromtimestamp(timestamp).strftime(
-                self.datetime_fmt_string
-            )
-            self.last_timestring = time_string
-
-            # get roundtrip time
-            rt_time = float(a[-2][5:])  # strip "time=" from "time=xx.x"
-
-            # write to stdout
-            if rt_time > self.max_time_ms:
-                print(f"{time_string} {self.last_line}")
-
-                # store time when stdout was written for next heartbeat
-                self.last_timestamp = timestamp
+            self.last_seq=seq
 
     def print_status(self):
         """
@@ -143,6 +163,8 @@ def parse_args():
 
     parser.add_argument("--fmt", type=str, default="%Y-%m-%d %H:%M:%S")
     parser.add_argument("--heartbeat-interval", type=float, default=0)
+
+    parser.add_argument("--allowed-seq-diff", type=int, default=1)
 
     args = parser.parse_args()
 
@@ -162,6 +184,7 @@ if __name__ == "__main__":
         max_time_ms=args.max_time_ms,
         datetime_fmt_string=args.fmt,
         heartbeat_interval=args.heartbeat_interval,
+        allowed_seq_diff=args.allowed_seq_diff
     )
 
     # callback for USR1

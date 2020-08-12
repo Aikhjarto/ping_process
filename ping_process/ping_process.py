@@ -108,19 +108,25 @@ class PingDProcessor:
         if a[0] != "PING":
             # header line (starting with PING) is of no interest
 
-            # strip square brackets from timestamp
-            timestamp = float(a[0][1:-2])
+            try:
+                # strip square brackets from timestamp
+                timestamp = float(a[0][1:-2])
 
-            # get sequence number
-            seq = int(a[5][9:])
+                # get sequence number
+                seq = int(a[5][9:])
 
-            # get roundtrip time
-            rt_time = float(a[7][5:])  # strip "time=" from "time=xx.x"
+                # get roundtrip time
+                rt_time = float(a[7][5:])  # strip "time=" from "time=xx.x"
 
-            # convert time when ping was sent in a human readable format
-            time_string = datetime.fromtimestamp(timestamp).strftime(
-                self.datetime_fmt_string
-            )
+                # convert time when ping was sent in a human readable format
+                time_string = datetime.fromtimestamp(timestamp).strftime(
+                    self.datetime_fmt_string
+                )
+            except ValueError as ex:
+                print('Unparseable line:', line)
+                print('Unparseable line:', line, file=sys.stderr)
+                raise ex
+
             self.last_timestring = time_string
 
             # log too long roundtrip time

@@ -153,7 +153,7 @@ class PingDProcessor:
         """
         Callback for USR1 signal to print status to stderr.
         """
-        print(f'Last line: "{self.last_line}"', file=sys.stderr)
+        print(f'Last line at {self.last_timestring}: "{self.last_line}"', file=sys.stderr)
 
 
 def parse_args():

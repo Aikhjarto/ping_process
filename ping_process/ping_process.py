@@ -92,6 +92,7 @@ class PingDProcessor:
         PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
         [1597166438.798339] 64 bytes from 8.8.8.8: icmp_seq=1 ttl=118 time=14.2 ms
         [1597166439.798003] 64 bytes from 8.8.8.8: icmp_seq=2 ttl=118 time=13.8 ms
+        [1597245144.447473] 64 bytes from 8.8.8.8: icmp_seq=877 ttl=118 time=244 ms (DUP!)
         ```
         """
 
@@ -114,7 +115,7 @@ class PingDProcessor:
             seq = int(a[5][9:])
 
             # get roundtrip time
-            rt_time = float(a[-2][5:])  # strip "time=" from "time=xx.x"
+            rt_time = float(a[7][5:])  # strip "time=" from "time=xx.x"
 
             # convert time when ping was sent in a human readable format
             time_string = datetime.fromtimestamp(timestamp).strftime(
@@ -123,7 +124,9 @@ class PingDProcessor:
             self.last_timestring = time_string
 
             # log too long roundtrip time
-            if rt_time > self.max_time_ms:
+            if rt_time > self.max_time_ms or len(a)>9:
+                # len(a)>0 if suffix like (DUP!) was appended
+
                 print(f"{time_string} {self.last_line}")
 
                 # store time when stdout was written for next heartbeat
@@ -134,6 +137,7 @@ class PingDProcessor:
                 # missed a ping
                 print(f"{time_string} Missed icmp_seq={self.last_seq}:{seq}")
                 self.last_timestamp = timestamp
+
 
             if (
                 self.last_timestamp

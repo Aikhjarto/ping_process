@@ -138,10 +138,10 @@ class PingDProcessor:
                 # store time when stdout was written for next heartbeat
                 self.last_timestamp = timestamp
 
-            # check is sequence number increment is one
-            if self.last_seq != -1 and seq - self.allowed_seq_diff != self.last_seq:
+            # check is sequence number increment
+            if self.last_seq != -1 and seq - self.last_seq > self.allowed_seq_diff:
                 # missed a ping
-                print(f"{time_string} Missed icmp_seq={self.last_seq}:{seq}")
+                print(f"{time_string} Missed icmp_seq={self.last_seq}:{seq} ({seq-self.last_seq} packets)")
                 self.last_timestamp = timestamp
 
 

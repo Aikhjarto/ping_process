@@ -101,6 +101,7 @@ class PingDProcessor:
 
         a = line.split(" ")
         if len(a) == 8:
+            # ordinary ping message has 8 fields. '-D' adds the timestamp as prefix.
             raise RuntimeError(
                 "Got 8 columns. Maybe you missed -D " 'when calling "ping -D x.x.x.x"'
             )
@@ -129,9 +130,9 @@ class PingDProcessor:
 
             self.last_timestring = time_string
 
-            # log too long roundtrip time
+            # log too long roundtrip time or unusual suffix
             if rt_time > self.max_time_ms or len(a)>9:
-                # len(a)>0 if suffix like (DUP!) was appended
+                # len(a)>9 if suffix like (DUP!) was appended
 
                 print(f"{time_string} {self.last_line}")
 
@@ -144,7 +145,7 @@ class PingDProcessor:
                 print(f"{time_string} Missed icmp_seq={self.last_seq}:{seq} ({seq-self.last_seq} packets)")
                 self.last_timestamp = timestamp
 
-
+            # heartbeat message if nothing else happend
             if (
                 self.last_timestamp
                 and self.heartbeat_interval > 0

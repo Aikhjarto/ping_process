@@ -173,7 +173,7 @@ class PingDProcessor:
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Reads data from 'ping -D' and forwards only interesting lines.",
-            epilog="Example usage: ping -D x.x.x.x | python3 ping_process.py'"  )
+            epilog="Example usage: ping -D x.x.x.x | python3 ping_process.py"  )
 
     parser.add_argument("--max-time-ms", "-t", type=float, default=500, metavar="T",
             help="Roundtrip times exceeding T will be logged. Default %(default)s")

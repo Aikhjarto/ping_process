@@ -45,7 +45,7 @@ optional arguments:
   --allowed-seq-diff N  If N or more sequence numbers are missing, a
                         corresponding line will be printed. Default: 1
 
-Example usage: ping -D x.x.x.x | python3 ping_process.py'
+Example usage: ping -D x.x.x.x | python3 ping_process.py
 ```
 
 ## Show current status

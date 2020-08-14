@@ -172,14 +172,22 @@ class PingDProcessor:
 
 
 def parse_args():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Reads data from 'ping -D' and forwards only interesting lines.",
+            epilog="Example usage: ping -D x.x.x.x | python3 ping_process.py'"  )
 
-    parser.add_argument("--max-time-ms", "-t", type=float, default=500, metavar="T")
+    parser.add_argument("--max-time-ms", "-t", type=float, default=500, metavar="T",
+            help="Roundtrip times exceeding T will be logged. Default %(default)s")
 
-    parser.add_argument("--fmt", type=str, default="%Y-%m-%d %H:%M:%S")
-    parser.add_argument("--heartbeat-interval", type=float, default=0)
+    parser.add_argument("--fmt", type=str, default="%Y-%m-%d %H:%M:%S",
+            help=r"Format for the human readable timestamp passed to the 'datetime' module. "
+            "Default: '%(default)s'")
+    parser.add_argument("--heartbeat-interval", type=float, default=0, metavar="H",
+            help="If H is greater than 0 and no output was produced within H seconds"
+            "a status message indicating that this script is still alive will be printed." )
 
-    parser.add_argument("--allowed-seq-diff", type=int, default=1)
+    parser.add_argument("--allowed-seq-diff", type=int, default=1, metavar="N",
+            help="If N or more sequence numbers are missing, a corresponding "
+            "line will be printed. Default: %(default)s")
 
     args = parser.parse_args()
 

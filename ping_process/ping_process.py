@@ -93,6 +93,8 @@ class PingDProcessor:
         [1597166438.798339] 64 bytes from 8.8.8.8: icmp_seq=1 ttl=118 time=14.2 ms
         [1597166439.798003] 64 bytes from 8.8.8.8: icmp_seq=2 ttl=118 time=13.8 ms
         [1597245144.447473] 64 bytes from 8.8.8.8: icmp_seq=877 ttl=118 time=244 ms (DUP!)
+        [1597411489.934841] From x.x.x.x icmp_seq=14 Packet filtered
+
         ```
         """
 
@@ -126,7 +128,7 @@ class PingDProcessor:
             except ValueError as ex:
                 print('Unparseable line:', line)
                 print('Unparseable line:', line, file=sys.stderr)
-                raise ex
+                return -1
 
             self.last_timestring = time_string
 
@@ -159,6 +161,8 @@ class PingDProcessor:
                 self.last_timestamp = time.time()
 
             self.last_seq=seq
+
+            return 0
 
     def print_status(self):
         """

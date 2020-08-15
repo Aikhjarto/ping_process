@@ -94,6 +94,7 @@ class PingDProcessor:
         [1597166439.798003] 64 bytes from 8.8.8.8: icmp_seq=2 ttl=118 time=13.8 ms
         [1597245144.447473] 64 bytes from 8.8.8.8: icmp_seq=877 ttl=118 time=244 ms (DUP!)
         [1597411489.934841] From x.x.x.x icmp_seq=14 Packet filtered
+        [1597500391.382726] From x.x.x.x icmp_seq=13317 Destination Host Unreachable
 
         ```
         """
@@ -126,8 +127,8 @@ class PingDProcessor:
                     self.datetime_fmt_string
                 )
             except ValueError as ex:
-                print('Unparseable line:', line)
-                print('Unparseable line:', line, file=sys.stderr)
+                print('Unparseable line:', self.last_line)
+                print('Unparseable line:', self.last_line, file=sys.stderr)
                 return -1
 
             self.last_timestring = time_string

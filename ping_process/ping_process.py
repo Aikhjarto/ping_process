@@ -130,6 +130,10 @@ class PingDProcessor:
             except ValueError as ex:
                 print('Unparseable timestamp:', self.last_line)
                 print('Unparseable timestamp:', self.last_line, file=sys.stderr)
+                
+                # store time when stdout was written for next heartbeat
+                self.last_timestamp = timestamp
+                
                 return -1
 
             # check for sequence number and roundtrip time
@@ -143,6 +147,10 @@ class PingDProcessor:
             except ValueError as ex:
                 # No parseable time=xx.x tag, thus assume an error and report it
                 print(self.last_line)
+                
+                # store time when stdout was written for next heartbeat
+                self.last_timestamp = timestamp
+                
                 return 1
 
             # log too long roundtrip time or unusual suffix
@@ -158,6 +166,8 @@ class PingDProcessor:
             if self.last_seq != -1 and seq > (self.last_seq + self.allowed_seq_diff) % 65536:
                 # missed a ping
                 print(f"{self.time_string} Missed icmp_seq={self.last_seq}:{seq} ({seq-self.last_seq} packets)")
+                
+                # store time when stdout was written for next heartbeat
                 self.last_timestamp = timestamp
 
             # heartbeat message if nothing else happend

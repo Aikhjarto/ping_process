@@ -85,6 +85,12 @@ class PingDProcessor:
         line : str
             String denoting one line of the output of ping.
 
+        Returns
+        -------
+        ret : int
+            -1 for unparseable line
+            1 if no time=xx.x tag is in line
+
         Notes
         -----
         Typical output of `ping -D` looks like
@@ -112,26 +118,33 @@ class PingDProcessor:
         if a[0] != "PING":
             # header line (starting with PING) is of no interest
 
+            # check for valid timestamp
             try:
                 # strip square brackets from timestamp
                 timestamp = float(a[0][1:-2])
+                
+                # convert time when ping was sent in a human readable format
+                time_string = datetime.fromtimestamp(timestamp).strftime(
+                    self.datetime_fmt_string
+                )
+            except ValueError as ex:
+                print('Unparseable timestamp:', self.last_line)
+                print('Unparseable timestamp:', self.last_line, file=sys.stderr)
+                return -1
+            self.last_timestring = time_string
 
+            # check for sequence number and roundtrip time
+            try:
                 # get sequence number
                 seq = int(a[5][9:])
 
                 # get roundtrip time
                 rt_time = float(a[7][5:])  # strip "time=" from "time=xx.x"
 
-                # convert time when ping was sent in a human readable format
-                time_string = datetime.fromtimestamp(timestamp).strftime(
-                    self.datetime_fmt_string
-                )
             except ValueError as ex:
-                print('Unparseable line:', self.last_line)
-                print('Unparseable line:', self.last_line, file=sys.stderr)
-                return -1
-
-            self.last_timestring = time_string
+                # No parseable time=xx.x tag, thus assume an error and report it
+                print(self.last_line)
+                return 1
 
             # log too long roundtrip time or unusual suffix
             if rt_time > self.max_time_ms or len(a)>9:

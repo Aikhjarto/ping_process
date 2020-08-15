@@ -71,7 +71,7 @@ class PingDProcessor:
 
         # last line for status output
         self.last_line = ""
-        self.last_timestring = ""
+        self.time_string = ""
 
         self.last_seq = -1
         self.allowed_seq_diff = allowed_seq_diff
@@ -124,14 +124,13 @@ class PingDProcessor:
                 timestamp = float(a[0][1:-2])
                 
                 # convert time when ping was sent in a human readable format
-                time_string = datetime.fromtimestamp(timestamp).strftime(
+                self.time_string = datetime.fromtimestamp(timestamp).strftime(
                     self.datetime_fmt_string
                 )
             except ValueError as ex:
                 print('Unparseable timestamp:', self.last_line)
                 print('Unparseable timestamp:', self.last_line, file=sys.stderr)
                 return -1
-            self.last_timestring = time_string
 
             # check for sequence number and roundtrip time
             try:
@@ -150,7 +149,7 @@ class PingDProcessor:
             if rt_time > self.max_time_ms or len(a)>9:
                 # len(a)>9 if suffix like (DUP!) was appended
 
-                print(f"{time_string} {self.last_line}")
+                print(f"{self.time_string} {self.last_line}")
 
                 # store time when stdout was written for next heartbeat
                 self.last_timestamp = timestamp
@@ -158,7 +157,7 @@ class PingDProcessor:
             # check sequence number increment (wraps to 0 after 65535)
             if self.last_seq != -1 and seq > (self.last_seq + self.allowed_seq_diff) % 65536:
                 # missed a ping
-                print(f"{time_string} Missed icmp_seq={self.last_seq}:{seq} ({seq-self.last_seq} packets)")
+                print(f"{self.time_string} Missed icmp_seq={self.last_seq}:{seq} ({seq-self.last_seq} packets)")
                 self.last_timestamp = timestamp
 
             # heartbeat message if nothing else happend
@@ -169,7 +168,7 @@ class PingDProcessor:
             ):
                 print(
                     f"No anomalies found in the last {self.heartbeat_interval} s. "
-                    f"Last input was at {self.last_timestring}",
+                    f"Last input was at {self.time_string}",
                     file=self.heartbeat_pipe,
                 )
                 self.last_timestamp = time.time()
@@ -182,7 +181,7 @@ class PingDProcessor:
         """
         Callback for USR1 signal to print status to stderr.
         """
-        print(f'Last line at {self.last_timestring}: "{self.last_line}"', file=sys.stderr)
+        print(f'Last line at {self.time_string}: "{self.last_line}"', file=sys.stderr)
 
 
 def parse_args():

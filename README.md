@@ -14,11 +14,11 @@ ping -D 8.8.8.8 | python3 ping_process.py
 
 Use `tee` to store also raw data,
 ```shell
-ping -D 8.8.8.8 | tee raw.log | python3 ping_process.py
+ping -D 8.8.8.8 | tee -a raw.log | python3 ping_process.py
 ```
 or duplicate output to file
 ```shell
-ping -D 8.8.8.8 | python3 ping_process.py | tee interesting.log
+ping -D 8.8.8.8 | python3 ping_process.py | tee -a interesting.log
 ```
 
 ## Show CLI options

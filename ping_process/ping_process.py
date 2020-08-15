@@ -146,7 +146,7 @@ class PingDProcessor:
 
             except ValueError as ex:
                 # No parseable time=xx.x tag, thus assume an error and report it
-                print(self.last_line)
+                print(f"{self.time_string} {self.last_line}")
                 
                 # store time when stdout was written for next heartbeat
                 self.last_timestamp = timestamp
